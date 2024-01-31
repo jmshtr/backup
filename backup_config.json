@@ -1,0 +1,13 @@
+{
+  "Destination": "C:\\Backups",
+  "FilesToBackup": [
+    {
+      "Source": "C:\\Users\\Public\\Documents",
+      "Destination": "Documents"
+    },
+    {
+      "Source": "C:\\Users\\Public\\Pictures",
+      "Destination": "Pictures"
+    }
+  ]
+}
