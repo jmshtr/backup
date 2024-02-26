@@ -26,7 +26,7 @@ The script requires a configuration file named `backup_config.json` in the same 
   ]
 }
 ```
-_**Note:** Paths must contain a double backslash "\\\\" otherwise the location of the file or folder will not be recognized._
+_**Note:** Paths must contain a double backslash "\\\\" otherwise the location of the file or folder will not be recognised._
 
 ## Backup Configuration Format
 The following contains details about the key elements required in the backup configuration file to ensure accurate and efficient automated backups.
