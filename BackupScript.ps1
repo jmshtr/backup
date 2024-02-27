@@ -1,3 +1,8 @@
+param (
+    [string]$ConfigPath = ".\backup_config.json",
+    [string]$BackupLocation = "C:\Backup"
+)
+
 # Function to log messages
 function Write-Log {
     param (
@@ -21,17 +26,16 @@ function Handle-Error {
 }
 
 # Load configuration from JSON file
-$configPath = Join-Path -Path $PSScriptRoot -ChildPath "backup_config.json"
 try {
-    $config = Get-Content -Path $configPath -ErrorAction Stop | ConvertFrom-Json
+    $config = Get-Content -Path $ConfigPath -ErrorAction Stop | ConvertFrom-Json
 } catch {
     Handle-Error -ErrorMessage "Failed to load configuration file: $_"
 }
 
 # Destination backup location
-$backupLocation = $config.Destination
+$backupLocation = $BackupLocation
 
-# Check if backup location exists, create if not
+# Check if the backup location exists, create if not
 if (-not (Test-Path -Path $backupLocation -ErrorAction SilentlyContinue)) {
     try {
         New-Item -ItemType Directory -Path $backupLocation -Force -ErrorAction Stop | Out-Null
@@ -41,7 +45,7 @@ if (-not (Test-Path -Path $backupLocation -ErrorAction SilentlyContinue)) {
     }
 }
 
-# Check if last backup file exists, create if not
+# Check if the last backup file exists, create if not
 $lastBackupPath = Join-Path -Path $backupLocation -ChildPath "last_backup.txt"
 if (-not (Test-Path -Path $lastBackupPath -ErrorAction SilentlyContinue)) {
     try {
@@ -52,7 +56,7 @@ if (-not (Test-Path -Path $lastBackupPath -ErrorAction SilentlyContinue)) {
     }
 }
 
-# Get last backup timestamp
+# Get the last backup timestamp
 try {
     $lastBackup = Get-Item -Path $lastBackupPath -ErrorAction Stop
 } catch {
@@ -68,7 +72,7 @@ function PerformBackup {
             $source = $item.Source
             $destination = Join-Path -Path $backupLocation -ChildPath $item.Destination
             
-            # Check if item has been modified since last backup
+            # Check if an item has been modified since the last backup
             if ((Get-Item $source -ErrorAction Stop).LastWriteTime -gt $lastBackup.LastWriteTime) {
                 # Perform backup
                 Copy-Item -Path $source -Destination $destination -Recurse -Force -ErrorAction Stop
@@ -76,7 +80,7 @@ function PerformBackup {
             }
         }
         
-        # Update last backup timestamp
+        # Update the last backup timestamp
         Get-Date | Out-File -FilePath $lastBackupPath -ErrorAction Stop
         Write-Log -Message "Backup process completed successfully"
     } catch {
