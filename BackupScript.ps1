@@ -25,11 +25,33 @@ function Handle-Error {
     exit 1
 }
 
-# Load configuration from JSON file
+# Validate configuration file structure
 try {
     $config = Get-Content -Path $ConfigPath -ErrorAction Stop | ConvertFrom-Json
 } catch {
     Handle-Error -ErrorMessage "Failed to load configuration file: $_"
+}
+
+if (-not ($config | Get-Member -MemberType NoteProperty -Name "Destination")) {
+    Handle-Error -ErrorMessage "Configuration file is missing 'Destination' property."
+}
+
+if (-not ($config | Get-Member -MemberType NoteProperty -Name "FilesToBackup")) {
+    Handle-Error -ErrorMessage "Configuration file is missing 'FilesToBackup' property."
+}
+
+if (-not ($config.FilesToBackup -is [array])) {
+    Handle-Error -ErrorMessage "'FilesToBackup' property in the configuration file must be an array."
+}
+
+foreach ($item in $config.FilesToBackup) {
+    if (-not ($item | Get-Member -MemberType NoteProperty -Name "Source" -ErrorAction SilentlyContinue)) {
+        Handle-Error -ErrorMessage "Each item in 'FilesToBackup' must have a 'Source' property."
+    }
+
+    if (-not ($item | Get-Member -MemberType NoteProperty -Name "Destination" -ErrorAction SilentlyContinue)) {
+        Handle-Error -ErrorMessage "Each item in 'FilesToBackup' must have a 'Destination' property."
+    }
 }
 
 # Destination backup location
@@ -72,7 +94,7 @@ function PerformBackup {
             $source = $item.Source
             $destination = Join-Path -Path $backupLocation -ChildPath $item.Destination
             
-            # Check if an item has been modified since the last backup
+            # Check if the item has been modified since the last backup
             if ((Get-Item $source -ErrorAction Stop).LastWriteTime -gt $lastBackup.LastWriteTime) {
                 # Perform backup
                 Copy-Item -Path $source -Destination $destination -Recurse -Force -ErrorAction Stop
